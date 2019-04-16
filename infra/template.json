@@ -2,8 +2,7 @@
 	"Parameters": {
 		"BucketName": {
 			"Type": "String",
-            "Description": "the bucket name which holds the templetes",
-            "Default": "cloudformation-templates"
+            "Description": "the bucket name which holds the templetes"
         }
 	},
 	"Resources": {

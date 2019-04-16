@@ -13,7 +13,7 @@ jobs:
       - checkout
       - run:
           name: Validate CloudFormation
-          command: make validate
+          command: cd infra/ && make validate
 
   deploy:
     <<: *defaults
@@ -21,15 +21,9 @@ jobs:
       - checkout
       - run:
           name: Deploy Cloudformation
-          command: make ENV=prod deploy 
-
-  upload:
-    <<: *defaults
-    steps:
-      - checkout
-      - run:
-          name: Validate CloudFormation
-          command: aws s3 sync ./src s3://cf-templates --delete
+          command: | 
+            cd infra/ && make deploy \
+            aws s3 sync ./src s3://com.cuffney.cf-templates --delete
 
 workflows:
   version: 2
@@ -39,12 +33,6 @@ workflows:
       - deploy:
           requires:
             - validate
-          filters:
-            branches:
-              only: master
-      - upload:
-          requires:
-            - deploy
           filters:
             branches:
               only: master
