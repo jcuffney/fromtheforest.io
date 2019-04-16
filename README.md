@@ -1,5 +1,7 @@
 # CloudFormation Templates
 
+[![CircleCI](https://circleci.com/gh/jcuffney/cf-templates.svg?style=svg)](https://circleci.com/gh/jcuffney/cf-templates)
+
 > to be used to boostrap infrastructure.
 
 ## Use Cases
