@@ -10,21 +10,18 @@
 ## Infrastructure Components
 
 1. [x] [ECS Cluster](src/ecs-cluster)
-2. [x] [Static Website](src/static-website/README.md)
-3. [ ] [API Gateway](src/api-gateway/README.md)
-4. [ ] ECS Task
-5. [ ] ECS Service
-6. [ ] Lambda
-7. [ ] NodeJS Lambda Microservice (CRUD)
-8. [ ] NodeJS ECS Microservice (CRUD)
-9. [ ] Cognito User Pool
-10. [ ] SNS Topic (pub-sub)
-11. [ ] SNS Subscription + Queue + ECS Service + ECS Task
-12. [ ] SNS Subscription + Queue + Lambda
-13. [ ] ElasticSearch Cluster
-14. [ ] DynamoDB --> Lambda --> ElasticSearch
-15. [ ] Python ECS Microservice (CRUD)
-16. [ ] Python Lambda Microservice (CRUD)
+2. [x] [Static Website](src/static-website)
+3. [ ] [API Gateway](src/api-gateway)
+4. [ ] [NodeJS Lambda Microservice](src/nodejs-lambda-microservice) (CRUD)
+5. [ ] [NodeJS ECS Microservice](src/nodejs-ecs-microservice) (CRUD)
+6. [ ] Cognito User Pool
+7.  [ ] SNS Topic (pub-sub)
+8.  [ ] SNS Subscription + Queue + ECS Service + ECS Task
+9.  [ ] SNS Subscription + Queue + Lambda
+10. [ ] ElasticSearch Cluster
+11. [ ] DynamoDB --> Lambda --> ElasticSearch
+12. [ ] Python ECS Microservice (CRUD)
+13. [ ] Python Lambda Microservice (CRUD)
 
 ## CI/CD
 

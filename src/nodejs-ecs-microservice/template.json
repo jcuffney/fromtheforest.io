@@ -1,0 +1,72 @@
+{
+  "Parameters": {
+    "FunctionName": {
+      "Type": "String",
+      "Description": "the name of the function"
+    },
+    "FunctionDescription": {
+      "Type": "String",
+      "Description": "the description of the function",
+      "Default": ""
+    },
+    "SourceBucketName": {
+      "Type": "String",
+      "Description": "the name of the bucket to hold the source code"
+    },
+    "SourceKey": {
+      "Type": "String",
+      "Description": "the name of the function",
+      "Default": "source.zip"
+    },
+    "Timeout": {
+      "Type": "String",
+      "Description": "the number of seconds the lambda can run for.",
+      "Default": 5
+    },
+    "Runtime": {
+      "Type": "String",
+      "Description": "the lambda functions runtime",
+      "AllowedValues": ["Node.js 8.10"],
+      "Default": "Node.js 8.10"
+    }
+  },
+  "Resources": {
+    "SourceBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": { "Ref": "SourceBucketName" }
+      }
+    },
+    "ExecutionRole": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "RoleName": "",
+        "AssumeRolePolicyDocument": "",
+        "Policies": []
+      }
+    },
+    "Function": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "FunctionName": { "Ref": "FunctionName" },
+        "Description": { "Ref": "FunctionDescription" },
+        "Code": {
+          "S3Bucket": { "Ref": "SourceBucket" },
+          "S3Key": { "Ref": "SourceKey" }
+        },
+        "Timeout": { "Ref": "Timeout" },
+        "Role": { "Ref": "ExecutionRole" },
+        "Tags": [{
+            "Key": "Name",
+            "Value": { "Ref": "FunctionName" }
+        }]
+      }
+    },
+    "Table": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": { "Ref": "TableName" }
+      }
+    }
+  }
+}
