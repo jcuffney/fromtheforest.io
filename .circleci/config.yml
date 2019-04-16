@@ -1,0 +1,50 @@
+version: 2
+
+defaults: &defaults
+  docker: 
+    - image: jcuffney/node-ci-image:1.0.25
+  working_directory: ~/repo
+
+jobs:
+
+  validate:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Validate CloudFormation
+          command: make validate
+
+  deploy:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Deploy Cloudformation
+          command: make ENV=prod deploy 
+
+  upload:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Validate CloudFormation
+          command: aws s3 sync ./src s3://cf-templates --delete
+
+workflows:
+  version: 2
+  validate:
+    jobs:
+      - validate
+      - deploy:
+          requires:
+            - validate
+          filters:
+            branches:
+              only: master
+      - upload:
+          requires:
+            - deploy
+          filters:
+            branches:
+              only: master
