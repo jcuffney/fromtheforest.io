@@ -23,7 +23,8 @@ jobs:
       - run:
           name: Deploy Cloudformation
           command: | 
-            cd infra/ && make deploy \
+            cd infra/
+            make deploy
             aws s3 sync ./src s3://com.cuffney.cf-templates --delete
 
 workflows:
