@@ -1,0 +1,53 @@
+{
+  "Parameters": {
+    "BucketName": {
+      "Type": "String",
+      "Description": "The name of the bucket that will hold the API specification"
+    },
+    "HostDocumentation": {
+      "Type": "String",
+      "Description": "Whether documentation should be hosted or not",
+      "AllowedValues": [true, false],
+      "Default": false
+    },
+    "DomainName": {
+      "Type": "String",
+      "Description": "Full domain at which documentation is to be hosted"
+    },
+    "HostedZoneId": {
+      "Type": "String",
+      "Description": "The hosted zone id of DomainName"
+    },
+    "AcmCertificateArn": {
+      "Type": "String",
+      "Description": "the arn of the certificate for DomainName"
+    }
+  },
+  "Conditions": {
+    "CreateDocumentation": {
+      "Fn::Equals": [ true, { "Ref": "HostDocumentation" } ]
+    }
+  },
+  "Resources": {
+    "API": {
+      "Name": { "Ref": "Name" },
+      "Description": { "Ref": "Description" },
+      "BodyS3Location": { "Ref": "BodyS3Location" }
+    },
+    "Bucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": { "Ref": "BucketName" }
+      }
+    },
+    "Documentation": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Condition": { "Ref": "CreateDocumentation" },
+      "Properties": {
+        "DomainName": "<full_domain_name>",
+        "HostedZoneId": "<hosted_zone_id>",
+        "AcmCertificateArn": "<certificate_arn>"
+      }
+    }
+  }
+}
