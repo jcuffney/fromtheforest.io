@@ -1,0 +1,142 @@
+openapi: 3.0.0
+
+info:
+  title: DiGuiseppe Recipes API
+  description: Backend API for services related to the diguisepperecipes.com site.
+  version: "v1"
+
+paths:
+
+ 
+# https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-method-request-validation.html
+x-amazon-apigateway-request-validators: 
+  body:
+    validateRequestBody: true
+    validateRequestParameters: false
+
+servers:
+  - url: 'https://api.diguisepperecipes.com/v1'
+
+components:
+
+  responses:
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    UnexpectedError:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    RecipeList:
+      description: 200 response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RecipeList'
+
+    Recipe:
+      description: 200 response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Recipe'
+
+  schemas:
+
+    RecipeList:
+      type: array
+      items:
+        $ref: '#/components/schemas/Recipe'
+
+    Recipe:
+      type: object
+      required:
+        - title
+      properties:
+        id:
+          type: string
+        createdDate:
+          type: string
+        editedDate:
+          type: string
+          format: date-time
+        title:
+          type: string
+        description:
+          type: string
+        author:
+          type: string
+        email:
+          type: string
+          format: email
+        imageUrl:
+          type: string
+          format: uri
+        steps:
+          type: array
+          items:
+            type: string
+        ingredients:
+          type: array
+          items:
+            type: string
+        category:
+          type: array
+          items:
+            type: string
+            enum:
+              - appetizers
+              - soups
+              - sauces
+              - salads
+              - breads
+              - vegetables
+              - sides
+              - meats and fishes
+              - main dishes
+              - desserts
+              - cookies
+              - drinks
+        tags:
+          type: array
+          items:
+            type: string
+        duration:
+          type: object
+          required:
+            - time
+            - unit
+          properties:
+            time:
+              type: integer
+            unit:
+              type: string
+              enum:
+                - second
+                - minute
+                - hour
+                - day
+
+    SearchResponse:
+      type: array
+      items:
+        type: string
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+        - code
+        - message

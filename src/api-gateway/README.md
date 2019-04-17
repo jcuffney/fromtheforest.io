@@ -9,8 +9,9 @@
                 "TemplateUrl": "https://s3.amazonaws/cf-templates/api-gateway/template.json",
                 "Parameters": {
                     "ApiName": "<api_name>",
-                    "BodyS3Location": "<open_api_spec_file>",
-                    "Description": "<description>"
+                    "Description": "<description>",
+                    "ApiSpecBucket": "<s3_bucket>",
+                    "ApiSpecKey": "<s3_object>",
                 }
             }
         }
