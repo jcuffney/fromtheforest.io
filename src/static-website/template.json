@@ -72,24 +72,35 @@
 			"Type": "AWS::CloudFront::Distribution",
 			"Properties": {
 				"DistributionConfig": {
-					"Origins": [{
-						"DomainName": {
-							"Fn::GetAtt": ["Bucket", "DomainName"]
-						},
-						"Id": "S3Origin",
-						"S3OriginConfig": {
-							"OriginAccessIdentity": {
-								"Fn::Sub": [
-									"origin-access-identity/cloudfront/${OriginAccessIdentity}",
-									{
-										"OriginAccessIdentity": {
-											"Ref": "OriginAccessIdentity"
+					"Origins": [
+						{
+							"DomainName": {
+								"Fn::GetAtt": ["Bucket", "DomainName"]
+							},
+							"Id": "S3Origin",
+							"S3OriginConfig": {
+								"OriginAccessIdentity": {
+									"Fn::Sub": [
+										"origin-access-identity/cloudfront/${OriginAccessIdentity}",
+										{
+											"OriginAccessIdentity": {
+												"Ref": "OriginAccessIdentity"
+											}
 										}
-									}
-								]
+									]
+								}
+							}
+						},
+						{
+							"DomainName": {
+								"Fn::GetAtt": ["Bucket", "RegionalDomainName"]
+							},
+							"Id": "CustomOrigin",
+							"CustomOriginConfig": {
+									"OriginProtocolPolicy": "http-only"
 							}
 						}
-					}],
+					],
 					"Enabled": "true",
 					"Comment": {
 						"Ref": "DomainName"
@@ -101,7 +112,7 @@
 					"DefaultCacheBehavior": {
 						"AllowedMethods": ["GET", "HEAD"],
 						"Compress": "true",
-						"TargetOriginId": "S3Origin",
+						"TargetOriginId": "CustomOrigin",
 						"ForwardedValues": {
 							"QueryString": "true",
 							"Cookies": {
@@ -116,7 +127,21 @@
 							"Ref": "AcmCertificateArn"
 						},
 						"SslSupportMethod": "sni-only"
-					}
+					},
+					"CustomErrorResponses": [
+						{
+							"ErrorCachingMinTTL" : 300,
+							"ErrorCode" : 403,
+							"ResponseCode" : 200,
+							"ResponsePagePath" : "/index.html"
+						},
+						{
+							"ErrorCachingMinTTL" : 300,
+							"ErrorCode" : 404,
+							"ResponseCode" : 200,
+							"ResponsePagePath" : "/index.html"
+						}
+					]
 				}
 			}
 		},
