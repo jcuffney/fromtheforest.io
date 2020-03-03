@@ -1,33 +1,275 @@
 {
-  "Parameters": {
-    "ApiName": {
-      "Type": "String",
-      "Description": "The name of the API"
-    },
-    "ApiDescription": {
-      "Type": "String",
-      "Description": "The description of the API"
-    },
-    "ApiSpecBucket": {
-      "Type": "String",
-      "Description": "The bucket name which holds the OpenApi Specification"
-    },
-    "ApiSpecKey": {
-      "Type": "String",
-      "Description": "The object key for the OpenApi Specification"
-    }
-  },
-  "Resources": {
-    "API": {
-      "Type": "AWS::ApiGateway::RestApi",
-      "Properties": {
-        "Name": { "Ref": "ApiName" },
-        "Description": { "Ref": "ApiDescription" },
-        "BodyS3Location": {
-          "Bucket": { "Ref": "ApiSpecBucket" },
-          "Key": { "Ref": "ApiSpecKey" }
-        }
-      }
-    }
-  }
+	"Description": "API Gateway",
+	"Parameters": {
+		"Name": {
+			"Type": "String",
+			"Description": "API Name"
+		},
+		"Description": {
+			"Type": "String",
+			"Default": "API Gateway"
+		},
+		"StageName": {
+			"Type": "String",
+			"Default": "v1"
+		},
+		"DomainName": {
+			"Type": "String"
+		},
+		"Subdomain": {
+			"Type": "String"
+		},
+		"CacheClusterSize": {
+			"Type": "String",
+			"AllowedValues": ["", "0.5", "1.6", "6.1", "13.5", "28.4", "58.2", "118", "237"],
+			"Default": "",
+			"Description": "Cache Size in GB. Enables cache (optional)"
+		},
+		"CacheTtl": {
+			"Type": "Number",
+			"Description": "Default Cache TTL (in seconds)",
+			"Default": 0
+		},
+		"MinimumCompressionSize": {
+			"Type": "Number",
+			"Description": "Min response size (in bytes) to be compressed (default = 10kb)",
+			"Default": 10000,
+			"MinValue": 0,
+			"MaxValue": 10485760
+		}
+	},
+	"Conditions": {
+		"EnableCache": {
+			"Fn::Not": [{
+				"Fn::Equals": ["", {
+					"Ref": "CacheClusterSize"
+				}]
+			}]
+		}
+	},
+	"Resources": {
+		"ApiGateway": {
+			"Type": "AWS::ApiGateway::RestApi",
+			"Properties": {
+				"Name": {
+					"Ref": "Name"
+				},
+				"Description": {
+					"Ref": "Description"
+				},
+				"MinimumCompressionSize": {
+					"Ref": "MinimumCompressionSize"
+				},
+				"BinaryMediaTypes": ["application~1octet-stream", "application~1pdf", "application~1tar", "application~1zip", "image~1gif", "image~1jpeg", "image~1png", "video~1mp4", "video~1quicktime"]
+			}
+		},
+		"Response4XX": {
+			"Type": "AWS::ApiGateway::GatewayResponse",
+			"Properties": {
+				"ResponseParameters": {
+					"gatewayresponse.header.Access-Control-Allow-Origin": "'*'",
+					"gatewayresponse.header.Access-Control-Allow-Headers": "'*'",
+					"gatewayresponse.header.Access-Control-Allow-Methods": "'*'"
+				},
+				"ResponseTemplates": {
+					"application/json": "{ \"message\": $context.error.messageString }"
+				},
+				"ResponseType": "DEFAULT_4XX",
+				"RestApiId": {
+					"Ref": "ApiGateway"
+				}
+			}
+		},
+		"Response5XX": {
+			"Type": "AWS::ApiGateway::GatewayResponse",
+			"Properties": {
+				"ResponseParameters": {
+					"gatewayresponse.header.Access-Control-Allow-Origin": "'*'",
+					"gatewayresponse.header.Access-Control-Allow-Headers": "'*'",
+					"gatewayresponse.header.Access-Control-Allow-Methods": "'*'"
+				},
+				"ResponseTemplates": {
+					"application/json": "{ \"message\": $context.error.messageString }"
+				},
+				"ResponseType": "DEFAULT_5XX",
+				"RestApiId": {
+					"Ref": "ApiGateway"
+				}
+			}
+		},
+		"ApiDomainName": {
+			"Type": "AWS::ApiGateway::DomainName",
+			"Properties": {
+				"CertificateArn": {
+					"Ref": "SslCert"
+				},
+				"DomainName": {
+					"Fn::Sub": "${Subdomain}.${DomainName}"
+				},
+				"EndpointConfiguration": {
+					"Types": ["EDGE"]
+				}
+			}
+		},
+		"BasePathMapping": {
+			"Type": "AWS::ApiGateway::BasePathMapping",
+			"Properties": {
+				"DomainName": {
+					"Ref": "ApiDomainName"
+				},
+				"RestApiId": {
+					"Ref": "ApiGateway"
+				}
+			}
+		},
+		"SslCert": {
+			"Type": "AWS::CertificateManager::Certificate",
+			"Properties": {
+				"DomainName": {
+					"Fn::Sub": "${Subdomain}.${DomainName}"
+				},
+				"ValidationMethod": "DNS"
+			}
+		},
+		"RecordSets": {
+			"Type": "AWS::Route53::RecordSetGroup",
+			"Properties": {
+				"HostedZoneName": {
+					"Fn::Sub": "${DomainName}."
+				},
+				"RecordSets": [{
+					"Name": {
+						"Fn::Sub": "${Subdomain}.${DomainName}."
+					},
+					"Type": "A",
+					"AliasTarget": {
+						"DNSName": {
+							"Fn::GetAtt": ["ApiDomainName", "DistributionDomainName"]
+						},
+						"HostedZoneId": "Z2FDTNDATAQYW2"
+					}
+				}, {
+					"Name": {
+						"Fn::Sub": "${Subdomain}.${DomainName}."
+					},
+					"Type": "AAAA",
+					"AliasTarget": {
+						"DNSName": {
+							"Fn::GetAtt": ["ApiDomainName", "DistributionDomainName"]
+						},
+						"HostedZoneId": "Z2FDTNDATAQYW2"
+					}
+				}]
+			}
+		},
+		"RootMethod": {
+			"Type": "AWS::ApiGateway::Method",
+			"Properties": {
+				"AuthorizationType": "NONE",
+				"HttpMethod": "ANY",
+				"ResourceId": {
+					"Fn::GetAtt": ["ApiGateway", "RootResourceId"]
+				},
+				"RestApiId": {
+					"Ref": "ApiGateway"
+				},
+				"Integration": {
+					"Type": "MOCK",
+					"IntegrationResponses": [{
+						"StatusCode": 404
+					}],
+					"RequestTemplates": {
+						"application/json": "{\"statusCode\":404}",
+						"text/html": "{\"statusCode\":404}"
+					}
+				},
+				"MethodResponses": [{
+					"StatusCode": 404
+				}]
+			}
+		},
+		"Stage": {
+			"Type": "AWS::ApiGateway::Stage",
+			"Properties": {
+				"DeploymentId": {
+					"Ref": "Deployment"
+				},
+				"Description": {
+					"Ref": "StageName"
+				},
+				"RestApiId": {
+					"Ref": "ApiGateway"
+				},
+				"StageName": {
+					"Ref": "StageName"
+				},
+				"AccessLogSetting": {
+					"DestinationArn": {
+						"Fn::GetAtt": ["StageLogGroup", "Arn"]
+					}
+				},
+				"MethodSettings": [{
+					"HttpMethod": "*",
+					"ResourcePath": "/*",
+					"LoggingLevel": "INFO",
+					"DataTraceEnabled": true,
+					"MetricsEnabled": true
+				}, {
+					"Fn::If": ["EnableCache", {
+						"HttpMethod": "GET",
+						"ResourcePath": "/*",
+						"CacheTtlInSeconds": {
+							"Ref": "CacheTtl"
+						},
+						"CachingEnabled": true
+					}, {
+						"Ref": "AWS::NoValue"
+					}]
+				}],
+				"TracingEnabled": true,
+				"CacheClusterEnabled": {
+					"Fn::If": ["EnableCache", true, false]
+				},
+				"CacheClusterSize": {
+					"Fn::If": ["EnableCache", {
+						"Ref": "CacheClusterSize"
+					}, {
+						"Ref": "AWS::NoValue"
+					}]
+				}
+			}
+		},
+		"StageLogGroup": {
+			"Type": "AWS::Logs::LogGroup",
+			"Properties": {
+				"LogGroupName": {
+					"Fn::Sub": "/aws/apigateway/${Name}/${StageName}"
+				}
+			}
+		},
+		"Deployment": {
+			"Type": "AWS::ApiGateway::Deployment",
+			"Properties": {
+				"RestApiId": {
+					"Ref": "ApiGateway"
+				},
+				"StageName": "init"
+			},
+			"DependsOn": "RootMethod"
+		}
+	},
+	"Outputs": {
+		"ApiGatewayId": {
+			"Description": "ApiGateway ID",
+			"Value": {
+				"Ref": "ApiGateway"
+			}
+		},
+		"ApiGatewayRootResourceId": {
+			"Description": "ApiGateway Root Resource ID",
+			"Value": {
+				"Fn::GetAtt": ["ApiGateway", "RootResourceId"]
+			}
+		}
+	}
 }
