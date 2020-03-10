@@ -140,7 +140,7 @@
 		}
 	},
 	"Outputs": {
-		"DistrobutionId": {
+		"DistributionId": {
 			"Description": "the CloudFront Distribution ID.",
 			"Value": {
 				"Ref": "Distribution"
