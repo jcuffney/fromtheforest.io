@@ -14,7 +14,7 @@
 			"Type": "AWS::S3::Bucket",
 			"Properties": {
 				"BucketName": {
-					"Fn::Sub": "${Subdomain}.${DomainName}"
+					"Ref": "DomainName"
 				},
 				"WebsiteConfiguration": {
 					"IndexDocument": "index.html",
@@ -37,7 +37,7 @@
 							"Principal": "*",
 							"Action": "s3:GetObject",
 							"Resource": {
-								"Fn::Sub": "arn:aws:s3:::${Subdomain}.${DomainName}/*"
+								"Fn::Sub": "arn:aws:s3:::${DomainName}/*"
 							}
 						}
 					]
@@ -49,7 +49,7 @@
 			"Properties": {
 				"CloudFrontOriginAccessIdentityConfig": {
 					"Comment": {
-						"Fn::Sub": "${Subdomain}.${DomainName}"
+						"Ref": "DomainName"
 					}
 				}
 			}
@@ -71,11 +71,11 @@
 					],
 					"Enabled": "true",
 					"Comment": {
-						"Fn::Sub": "${Subdomain}.${DomainName}"
+						"Ref": "DomainName"
 					},
 					"DefaultRootObject": "index.html",
 					"Aliases": [{
-						"Fn::Sub": "${Subdomain}.${DomainName}"
+						"Ref": "DomainName"
 					}],
 					"DefaultCacheBehavior": {
 						"AllowedMethods": ["GET", "HEAD"],
@@ -118,7 +118,7 @@
 			"Properties": {
 				"ValidationMethod": "DNS",
 				"DomainName": {
-					"Fn::Sub": "${Subdomain}.${DomainName}"
+					"Ref": "DomainName"
 				}
 			}
 		},
@@ -130,7 +130,7 @@
 				},
 				"RecordSets": [{
 					"Name": {
-						"Ref":  "${Subdomain}.${DomainName}"
+						"Ref": "DomainName"
 					},
 					"Type": "A",
 					"AliasTarget": {
