@@ -1,8 +1,12 @@
 {
 	"Parameters": {
+		"HostedZoneName": {
+			"Type": "String",
+			"Description": "hosted zone name"
+		},
 		"DomainName": {
 			"Type": "String",
-			"Description": "domain name"
+			"Description": "domain name (subdomains included)"
 		}
 	},
 	"Resources": {
@@ -120,7 +124,7 @@
 			"Type": "AWS::Route53::RecordSetGroup",
 			"Properties": {
 				"HostedZoneName": {
-					"Fn::Sub": "${DomainName}."
+					"Fn::Sub": "${HostedZoneName}."
 				},
 				"RecordSets": [{
 					"Name": {
@@ -138,8 +142,20 @@
 		}
 	},
 	"Outputs": {
+		"DomainName": {
+			"Description": "the domain of the website",
+			"Value": {
+				"Fn::Sub": "https://${DomainName}"
+			}
+		},
 		"DistributionId": {
 			"Description": "the CloudFront Distribution ID.",
+			"Value": {
+				"Ref": "Distribution"
+			}
+		},
+		"SourceBucketName": {
+			"Description": "Source Bucket Name",
 			"Value": {
 				"Ref": "Distribution"
 			}
