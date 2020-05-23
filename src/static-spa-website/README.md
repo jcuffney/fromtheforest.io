@@ -2,21 +2,6 @@
 
 ```json
 {
-    "Parameters": {
-		"DomainName": {
-			"Type": "String",
-			"Description": "domain name"
-		},
-		"HostedZoneId": {
-			"Type": "String",
-			"Description": "id of the hosted zone"
-		},
-		"AcmCertificateArn": {
-			"Type": "String",
-			"Description": "the Amazon Resource Name (ARN) of an AWS Certificate Manager (ACM) certificate.",
-			"AllowedPattern": "arn:aws:acm:.*"
-		}
-    },
     "Resources": {
         "Stack": {
             "Type": "AWS::CloudFormation::Stack",
@@ -25,13 +10,7 @@
                 "Parameters": {
                     "DomainName": {
                         "Ref": "DomainName"
-                    },
-                    "HostedZoneId": {
-                        "Ref": "HostedZoneId"
-                    },
-                    "AcmCertificateArn": {
-                        "Ref": "AcmCertificateArn"
-                    }
+                    }                    
                 }
             }
         }
