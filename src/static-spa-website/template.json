@@ -3,15 +3,6 @@
 		"DomainName": {
 			"Type": "String",
 			"Description": "domain name"
-		},
-		"HostedZoneId": {
-			"Type": "String",
-			"Description": "id of the hosted zone"
-		},
-		"AcmCertificateArn": {
-			"Type": "String",
-			"Description": "the Amazon Resource Name (ARN) of an AWS Certificate Manager (ACM) certificate.",
-			"AllowedPattern": "arn:aws:acm:.*"
 		}
 	},
 	"Resources": {
@@ -97,7 +88,7 @@
 					"PriceClass": "PriceClass_200",
 					"ViewerCertificate": {
 						"AcmCertificateArn": {
-							"Ref": "AcmCertificateArn"
+							"Ref": "SslCert"
 						},
 						"SslSupportMethod": "sni-only"
 					},
@@ -118,11 +109,18 @@
 				}
 			}
 		},
+		"SslCert": {
+			"Type": "AWS::CertificateManager::Certificate",
+			"Properties": {
+				"ValidationMethod": "DNS",
+				"Ref": "DomainName"
+			}
+		},
 		"DNSRecord": {
 			"Type": "AWS::Route53::RecordSetGroup",
 			"Properties": {
-				"HostedZoneId": {
-					"Ref": "HostedZoneId"
+				"HostedZoneName": {
+					"Fn::Sub": "${DomainName}."
 				},
 				"RecordSets": [{
 					"Name": {
