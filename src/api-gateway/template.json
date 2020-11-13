@@ -15,12 +15,12 @@
          "Default": "v1",
          "Description": "The Stage Name"
       },
-      "SUBDOMAIN": {
+      "Subdomain": {
          "Type": "String",
          "Default": "api",
          "Description": "The Subdomain Name"
       },
-      "DOMAIN": {
+      "Domain": {
          "Type": "String",
          "Default": "cuffney.com",
          "Description": "The Domain Name"
