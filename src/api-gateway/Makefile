@@ -1,6 +1,9 @@
-STACK_NAME = api-gateway 
+STACK_NAME = nodejs-ecs-microservice
 TEMPLATE = template.json
 REGION = us-east-1
+
+# Parameters
+FUNCTION_NAME = lambda
 
 validate:
 	aws cloudformation validate-template \
@@ -11,12 +14,16 @@ create:
 	aws cloudformation create-stack \
 		--stack-name ${STACK_NAME} \
 		--template-body file://${TEMPLATE} \
+		--parameters \
+			ParameterKey=ClusterName,ParameterValue=${CLUSTER_NAME} \
 		--region ${REGION} 
 
 update:
 	aws cloudformation update-stack \
 		--stack-name ${STACK_NAME} \
 		--template-body file://${TEMPLATE} \
+		--parameters \
+			ParameterKey=ClusterName,ParameterValue=${CLUSTER_NAME} \
 		--region ${REGION} 
 
 delete:
@@ -29,4 +36,6 @@ deploy:
 		--stack-name ${STACK_NAME} \
 		--template-file ./${TEMPLATE} \
 		--no-fail-on-empty-changeset \
+		--parameter-overrides \
+			ClusterName=${CLUSTER_NAME} \
 		--region ${REGION} 
