@@ -1,4 +1,4 @@
-# NodeJS ECS Microservice
+# VPC 
 
 ```json
 {
@@ -6,7 +6,7 @@
         "Stack": {
             "Type": "AWS::CloudFormation::Stack",
             "Properties": {
-                "TemplateUrl": "https://s3.amazonaws/cf-templates/api-gateway/template.json",
+                "TemplateUrl": "https://s3.amazonaws/cf-templates/vpc/template.json",
                 "Parameters": {}
             }
         }
