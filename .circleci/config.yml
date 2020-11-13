@@ -32,7 +32,7 @@ jobs:
               --no-fail-on-empty-changeset \
               --parameter-overrides \
                 BucketName=com.cuffney.cf-templates \
-              --region us-east-1 && \ 
+              --region us-east-1
             aws s3 sync ./src s3://com.cuffney.cf-templates --delete
 
 workflows:
