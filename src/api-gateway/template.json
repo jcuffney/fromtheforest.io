@@ -38,7 +38,7 @@
             }
          }
       },
-      "Stage": {
+      "ApiStage": {
          "Type": "AWS::ApiGateway::Stage",
          "Properties": {
             "DeploymentId": {
@@ -67,7 +67,7 @@
                         "Ref": "ResourceNamespace"
                      },
                      {
-                        "Ref": "Stage"
+                        "Ref": "ApiStage"
                      }
                   ]
                ]
@@ -148,7 +148,7 @@
                "Ref": "RestApi"
             },
             "Stage": {
-               "Ref": "Stage"
+               "Ref": "ApiStage"
             }
          }
       },
