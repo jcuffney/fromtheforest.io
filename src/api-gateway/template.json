@@ -1,0 +1,333 @@
+{
+   "Parameters": {
+      "ResourceNamespace": {
+         "Type": "String",
+         "Default": "cuffney-dev-api-gateway",
+         "Description": "The Resource Namespace"
+      },
+      "SSMNamespace": {
+         "Type": "String",
+         "Default": "/cuffney/dev/api",
+         "Description": "The SSM Namespace"
+      },
+      "Stage": {
+         "Type": "String",
+         "Default": "v1",
+         "Description": "The Stage Name"
+      },
+      "SUBDOMAIN": {
+         "Type": "String",
+         "Default": "api",
+         "Description": "The Subdomain Name"
+      },
+      "DOMAIN": {
+         "Type": "String",
+         "Default": "cuffney.com",
+         "Description": "The Domain Name"
+      }
+   },
+   "Resources": {
+      "RestApi": {
+         "Type": "AWS::ApiGateway::RestApi",
+         "Properties": {
+            "Name": {
+               "Ref": "ResourceNamespace"
+            },
+            "Description": {
+               "Ref": "ResourceNamespace"
+            }
+         }
+      },
+      "Stage": {
+         "Type": "AWS::ApiGateway::Stage",
+         "Properties": {
+            "DeploymentId": {
+               "Ref": "InitialDeployment"
+            },
+            "RestApiId": {
+               "Ref": "RestApi"
+            },
+            "StageName": {
+               "Ref": "Stage"
+            },
+            "Description": {
+               "Ref": "Stage"
+            }
+         }
+      },
+      "StageLogGroup": {
+         "Type": "AWS::Logs::LogGroup",
+         "Properties": {
+            "LogGroupName": {
+               "Fn::Join": [
+                  "/",
+                  [
+                     "/aws/apigateway",
+                     {
+                        "Ref": "ResourceNamespace"
+                     },
+                     {
+                        "Ref": "Stage"
+                     }
+                  ]
+               ]
+            }
+         },
+         "RootMethod": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+               "AuthorizationType": "NONE",
+               "HttpMethod": "ANY",
+               "ResourceId": {
+                  "Fn::GetAtt": "RestApi.RootResourceId"
+               },
+               "RestApiId": {
+                  "Ref": "RestApi"
+               },
+               "Integration": {
+                  "Type": "MOCK",
+                  "IntegrationResponses": [
+                     {
+                        "StatusCode": 404
+                     }
+                  ],
+                  "RequestTemplates": {
+                     "application/json": "{\"statusCode\":404}",
+                     "text/html": "{\"statusCode\":404}"
+                  }
+               },
+               "MethodResponses": [
+                  {
+                     "StatusCode": 404
+                  }
+               ]
+            }
+         },
+         "InitialDeployment": {
+            "Type": "AWS::ApiGateway::Deployment",
+            "Properties": {
+               "RestApiId": {
+                  "Ref": "RestApi"
+               },
+               "StageName": "init"
+            },
+            "DependsOn": "RootMethod"
+         },
+         "ApiDomainName": {
+            "Type": "AWS::ApiGateway::DomainName",
+            "Properties": {
+               "DomainName": {
+                  "Fn::Join": [
+                     ".",
+                     [
+                        {
+                           "Ref": "Subdomain"
+                        },
+                        {
+                           "Ref": "Domain"
+                        }
+                     ]
+                  ]
+               },
+               "CertificateArn": {
+                  "Ref": "SslCert"
+               }
+            }
+         },
+         "BasePathMapping": {
+            "Type": "AWS::ApiGateway::BasePathMapping",
+            "Properties": {
+               "BasePath": {
+                  "Ref": "Stage"
+               },
+               "DomainName": {
+                  "Ref": "ApiDomainName"
+               },
+               "RestApiId": {
+                  "Ref": "RestApi"
+               },
+               "Stage": {
+                  "Ref": "Stage"
+               }
+            }
+         },
+         "SslCert": {
+            "Type": "AWS::CertificateManager::Certificate",
+            "Properties": {
+               "DomainName": {
+                  "Fn::Join": [
+                     ".",
+                     [
+                        {
+                           "Ref": "Subdomain"
+                        },
+                        {
+                           "Ref": "Domain"
+                        }
+                     ]
+                  ]
+               },
+               "ValidationMethod": "DNS"
+            }
+         },
+         "RecordSets": {
+            "Type": "AWS::Route53::RecordSetGroup",
+            "Properties": {
+               "HostedZoneName": {
+                  "Fn::Join": [
+                     "",
+                     [
+                        {
+                           "Ref": "Domain"
+                        },
+                        "."
+                     ]
+                  ]
+               },
+               "Comment": "api",
+               "RecordSets": [
+                  {
+                     "Name": {
+                        "Fn::Join": [
+                           ".",
+                           [
+                              {
+                                 "Ref": "Subdomain"
+                              },
+                              {
+                                 "Ref": "Domain"
+                              }
+                           ]
+                        ]
+                     },
+                     "Type": "A",
+                     "AliasTarget": {
+                        "DNSName": {
+                           "Fn::GetAtt": [
+                              "ApiDomainName",
+                              "DistributionDomainName"
+                           ]
+                        },
+                        "HostedZoneId": {
+                           "Fn::GetAtt": [
+                              "ApiDomainName",
+                              "DistributionHostedZoneId"
+                           ]
+                        }
+                     }
+                  },
+                  {
+                     "Name": {
+                        "Fn::Join": [
+                           ".",
+                           [
+                              {
+                                 "Ref": "Subdomain"
+                              },
+                              {
+                                 "Ref": "Domain"
+                              }
+                           ]
+                        ]
+                     },
+                     "Type": "AAAA",
+                     "AliasTarget": {
+                        "DNSName": {
+                           "Fn::GetAtt": [
+                              "ApiDomainName",
+                              "DistributionDomainName"
+                           ]
+                        },
+                        "HostedZoneId": {
+                           "Fn::GetAtt": [
+                              "ApiDomainName",
+                              "DistributionHostedZoneId"
+                           ]
+                        }
+                     }
+                  }
+               ]
+            }
+         },
+         "ApiGatewayId": {
+            "Type": "AWS::SSM::Parameter",
+            "Properties": {
+               "Type": "String",
+               "Name": {
+                  "Fn::Join": [
+                     "",
+                     [
+                        {
+                           "Ref": "SSMNamespace"
+                        },
+                        "/gateway/id"
+                     ]
+                  ]
+               },
+               "Value": {
+                  "Ref": "RestApi"
+               }
+            }
+         },
+         "ApiHost": {
+            "Type": "AWS::SSM::Parameter",
+            "Properties": {
+               "Type": "String",
+               "Name": {
+                  "Fn::Join": [
+                     "",
+                     [
+                        {
+                           "Ref": "SSMNamespace"
+                        },
+                        "/host"
+                     ]
+                  ]
+               },
+               "Value": {
+                  "Fn::Join": [
+                     "",
+                     [
+                        "https://",
+                        {
+                           "Ref": "Subdomain"
+                        },
+                        ".",
+                        {
+                           "Ref": "Domain"
+                        },
+                        "/",
+                        {
+                           "Ref": "Stage"
+                        }
+                     ]
+                  ]
+               }
+            }
+         },
+         "PrivateRootResourceId": {
+            "Type": "AWS::SSM::Parameter",
+            "Properties": {
+               "Type": "String",
+               "Name": {
+                  "Fn::Join": [
+                     "",
+                     [
+                        {
+                           "Ref": "SSMNamespace"
+                        },
+                        "/private/root-resource/id"
+                     ]
+                  ]
+               },
+               "Value": {
+                  "Fn::GetAtt": [
+                     "RestApi",
+                     "RootResourceId"
+                  ]
+               }
+            }
+         }
+      }
+   }
+}
