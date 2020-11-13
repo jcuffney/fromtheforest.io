@@ -1,29 +1,38 @@
 version: 2
 
-defaults: &defaults
-  docker: 
-    - image: jcuffney/node-ci-image:1.0.25
-  working_directory: ~/repo
-
+orbs:
+  node: circleci/node@4.1.0
+  aws-cli: circleci/aws-cli@1.3.0
 
 jobs:
 
   validate:
-    <<: *defaults
+    executor: node/default
     steps:
       - checkout
+      - aws-cli/setup
       - run:
           name: Validate CloudFormation
-          command: cd infra/ && make validate
+          command: |
+            aws cloudformation validate-template \
+              --template-body file://infra/template.json \
+              --region us-east-1
 
   deploy:
-    <<: *defaults
+    executor: node/default
     steps:
       - checkout
+      - aws-cli/setup
       - run:
           name: Deploy Cloudformation
           command: | 
-            make  -C ./infra deploy
+            aws cloudformation deploy \
+              --stack-name cf-templates \
+              --template-file ./infra/template.json \
+              --no-fail-on-empty-changeset \
+              --parameter-overrides \
+                BucketName=com.cuffney.cf-templates \
+              --region us-east-1 && \ 
             aws s3 sync ./src s3://com.cuffney.cf-templates --delete
 
 workflows:
@@ -31,9 +40,9 @@ workflows:
   validate:
     jobs:
       - validate:
-          context: AWS
+          context: cuffney
       - deploy:
-          context: AWS
+          context: cuffney 
           requires:
             - validate
           filters:
