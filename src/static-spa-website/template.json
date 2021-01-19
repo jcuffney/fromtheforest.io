@@ -15,10 +15,6 @@
 			"Properties": {
 				"BucketName": {
 					"Ref": "DomainName"
-				},
-				"WebsiteConfiguration": {
-					"IndexDocument": "index.html",
-					"ErrorDocument": "index.html"
 				}
 			}
 		},
@@ -34,7 +30,11 @@
 						{
 							"Sid": "AddPerm",
 							"Effect": "Allow",
-							"Principal": "*",
+							"Principal": {
+								"AWS": {
+									"Fn::Sub": "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${OriginAccessIdentity}"
+								}
+							},
 							"Action": "s3:GetObject",
 							"Resource": {
 								"Fn::Sub": "arn:aws:s3:::${DomainName}/*"
@@ -63,9 +63,11 @@
 							"DomainName": {
 								"Fn::GetAtt": ["Bucket", "RegionalDomainName"]
 							},
-							"Id": "CustomOrigin",
-							"CustomOriginConfig": {
-									"OriginProtocolPolicy": "http-only"
+							"Id": "S3Origin",
+							"S3OriginConfig": {
+								"OriginAccessIdentity": {
+									"Fn::Sub": "origin-access-identity/cloudfront/${OriginAccessIdentity}"
+								}
 							}
 						}
 					],
