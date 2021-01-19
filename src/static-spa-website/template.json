@@ -54,6 +54,67 @@
 				}
 			}
 		},
+		"Distribution": {
+			"Type": "AWS::CloudFront::Distribution",
+			"Properties": {
+				"DistributionConfig": {
+					"Origins": [
+						{
+							"DomainName": {
+								"Fn::GetAtt": ["Bucket", "RegionalDomainName"]
+							},
+							"Id": "S3Origin",
+							"S3OriginConfig": {
+								"OriginAccessIdentity": {
+									"Fn::Sub": "origin-access-identity/cloudfront/${OriginAccessIdentity}"
+								}
+							}
+						}
+					],
+					"Enabled": "true",
+					"Comment": {
+						"Ref": "DomainName"
+					},
+					"DefaultRootObject": "index.html",
+					"Aliases": [{
+						"Ref": "DomainName"
+					}],
+					"DefaultCacheBehavior": {
+						"AllowedMethods": ["GET", "HEAD"],
+						"Compress": "true",
+						"TargetOriginId": "CustomOrigin",
+						"ForwardedValues": {
+							"QueryString": "true",
+							"Cookies": {
+								"Forward": "none"
+							}
+						},
+						"ViewerProtocolPolicy": "redirect-to-https"
+					},
+					"PriceClass": "PriceClass_200",
+					"ViewerCertificate": {
+						"AcmCertificateArn": {
+							"Ref": "SslCert"
+						},
+						"SslSupportMethod": "sni-only"
+					},
+					"CustomErrorResponses": [
+						{
+							"ErrorCachingMinTTL" : 300,
+							"ErrorCode" : 403,
+							"ResponseCode" : 200,
+							"ResponsePagePath" : "/index.html"
+						},
+						{
+							"ErrorCachingMinTTL" : 300,
+							"ErrorCode" : 404,
+							"ResponseCode" : 200,
+							"ResponsePagePath" : "/index.html"
+						}
+					]
+				}
+			}
+		},
 		"SslCert": {
 			"Type": "AWS::CertificateManager::Certificate",
 			"Properties": {
@@ -62,6 +123,26 @@
 					"Ref": "DomainName"
 				}
 			}
+		},
+		"DNSRecord": {
+			"Type": "AWS::Route53::RecordSetGroup",
+			"Properties": {
+				"HostedZoneName": {
+					"Fn::Sub": "${HostedZoneName}."
+				},
+				"RecordSets": [{
+					"Name": {
+						"Ref": "DomainName"
+					},
+					"Type": "A",
+					"AliasTarget": {
+						"HostedZoneId": "Z2FDTNDATAQYW2",
+						"DNSName": {
+							"Fn::GetAtt": ["Distribution", "DomainName"]
+						}
+					}
+				}]
+			}
 		}
 	},
 	"Outputs": {
@@ -69,6 +150,12 @@
 			"Description": "the domain of the website",
 			"Value": {
 				"Fn::Sub": "https://${DomainName}"
+			}
+		},
+		"DistributionId": {
+			"Description": "the CloudFront Distribution ID.",
+			"Value": {
+				"Ref": "Distribution"
 			}
 		},
 		"SourceBucketName": {
