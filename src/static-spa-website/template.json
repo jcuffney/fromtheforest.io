@@ -82,7 +82,7 @@
 					"DefaultCacheBehavior": {
 						"AllowedMethods": ["GET", "HEAD"],
 						"Compress": "true",
-						"TargetOriginId": "CustomOrigin",
+						"TargetOriginId": "S3Origin",
 						"ForwardedValues": {
 							"QueryString": "true",
 							"Cookies": {
